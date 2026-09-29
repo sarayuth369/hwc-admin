@@ -190,14 +190,12 @@ export function UserDetail() {
             </button>
           )
         )}
-        {user.status !== "deleted" && (
-          <button
-            onClick={() => setPendingAction("delete")}
-            className="rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300"
-          >
-            Delete
-          </button>
-        )}
+        <button
+          onClick={() => setPendingAction("delete")}
+          className="rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300"
+        >
+          Delete
+        </button>
       </div>
 
       <ConfirmDialog

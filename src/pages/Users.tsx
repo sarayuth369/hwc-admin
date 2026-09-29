@@ -187,14 +187,12 @@ export function Users() {
                           </button>
                         )
                       )}
-                      {u.status !== "deleted" && (
-                        <button
-                          onClick={() => setPendingAction({ type: "delete", user: u })}
-                          className="rounded-lg border border-red-300 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300"
-                        >
-                          Delete
-                        </button>
-                      )}
+                      <button
+                        onClick={() => setPendingAction({ type: "delete", user: u })}
+                        className="rounded-lg border border-red-300 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>
