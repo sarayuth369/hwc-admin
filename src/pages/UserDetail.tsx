@@ -204,14 +204,14 @@ export function UserDetail() {
         open={pendingAction !== null}
         title={
           pendingAction === "delete"
-            ? "Delete this user?"
+            ? "Permanently delete this user?"
             : pendingAction === "suspend"
               ? "Suspend this user?"
               : "Unsuspend this user?"
         }
         description={
           pendingAction === "delete"
-            ? "This user will be permanently signed out and their display name removed."
+            ? "This user and their profile will be permanently deleted from Supabase. This cannot be undone — the account is gone, not just hidden. Their email becomes free for a new sign-up through the app."
             : pendingAction === "suspend"
               ? "This user will be immediately signed out and blocked from signing in again."
               : "This user will be able to sign in again."

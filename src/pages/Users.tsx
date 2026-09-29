@@ -230,14 +230,14 @@ export function Users() {
         open={pendingAction !== null}
         title={
           pendingAction?.type === "delete"
-            ? "Delete this user?"
+            ? "Permanently delete this user?"
             : pendingAction?.type === "suspend"
               ? "Suspend this user?"
               : "Unsuspend this user?"
         }
         description={
           pendingAction?.type === "delete"
-            ? `${pendingAction.user.email} will be permanently signed out and their display name removed. This is not immediately reversible from the UI.`
+            ? `${pendingAction.user.email} and their profile will be permanently deleted from Supabase. This cannot be undone — the account is gone, not just hidden. Their email becomes free for a new sign-up through the app.`
             : pendingAction?.type === "suspend"
               ? `${pendingAction?.user.email} will be immediately signed out and blocked from signing in again until unsuspended.`
               : `${pendingAction?.user.email} will be able to sign in again.`
