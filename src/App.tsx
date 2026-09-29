@@ -9,7 +9,8 @@ import { Users } from "./pages/Users";
 import { UserDetail } from "./pages/UserDetail";
 import { AuditLog } from "./pages/AuditLog";
 import { Settings } from "./pages/Settings";
-import { Notifications, Subscriptions, AiUsage } from "./pages/Placeholders";
+import { Subscriptions, AiUsage } from "./pages/Placeholders";
+import { Notifications } from "./pages/Notifications";
 
 export default function App() {
   return (

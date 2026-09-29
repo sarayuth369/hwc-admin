@@ -97,6 +97,20 @@ export interface AuditLogListResult {
   pageSize: number;
 }
 
+export interface SentNotificationRow {
+  id: string;
+  category: string;
+  title: string;
+  body: string;
+  createdAt: string;
+  userId: string;
+}
+
+export interface ListSentNotificationsResult {
+  rows: SentNotificationRow[];
+  total: number;
+}
+
 export const adminApi = {
   getDashboard: () => request<DashboardMetrics>("/api/admin/dashboard"),
 
@@ -142,4 +156,23 @@ export const adminApi = {
     if (params.action) qs.set("action", params.action);
     return request<AuditLogListResult>(`/api/admin/audit-log?${qs.toString()}`);
   },
+
+  listSentNotifications: (params: { page: number; pageSize: number }) => {
+    const qs = new URLSearchParams();
+    qs.set("page", String(params.page));
+    qs.set("pageSize", String(params.pageSize));
+    return request<ListSentNotificationsResult>(`/api/admin/notifications?${qs.toString()}`);
+  },
+
+  sendNotification: (params: {
+    targetType: "user" | "broadcast";
+    targetEmail?: string;
+    category: string;
+    title: string;
+    body: string;
+  }) =>
+    request<{ recipientCount: number }>("/api/admin/notifications", {
+      method: "POST",
+      body: JSON.stringify(params),
+    }),
 };

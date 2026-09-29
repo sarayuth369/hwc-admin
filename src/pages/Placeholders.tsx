@@ -1,17 +1,5 @@
 import { ComingSoon } from "../components/Common";
 
-export function Notifications() {
-  return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Notifications</h1>
-      <ComingSoon
-        title="Notification management"
-        description="HWC ships real local (on-device) wellness reminders today, but there is no server-driven/broadcast notification system yet — that needs FCM/APNs plus a Worker-side trigger, neither of which exists."
-      />
-    </div>
-  );
-}
-
 export function Subscriptions() {
   return (
     <div className="space-y-4">
