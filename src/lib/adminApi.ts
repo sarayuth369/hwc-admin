@@ -47,6 +47,7 @@ export interface DashboardMetrics {
   newUsersLast7Days: number;
   newUsersLast30Days: number;
   aiUsage: null;
+  usersWithAuthLoadError: number;
   recentActivity: Array<{
     action: string;
     targetType: string;
@@ -63,9 +64,13 @@ export interface AdminUserRow {
   status: "active" | "suspended" | "deleted";
   isAdmin: boolean;
   emailConfirmed: boolean;
-  createdAt: string;
+  createdAt: string | null;
   lastSignInAt: string | null;
   bannedUntil: string | null;
+  /** Set when this user's profile exists but their Supabase Auth record
+   * couldn't be loaded -- a real, confirmed production case (a corrupted
+   * auth.users row), not a client bug. Shown honestly rather than hidden. */
+  authLoadError?: string;
 }
 
 export interface ListUsersResult {

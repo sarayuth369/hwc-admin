@@ -71,12 +71,21 @@ export function UserDetail() {
         ← Back to users
       </Link>
       <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-        {user.email ?? "(no email)"}
+        {user.authLoadError ? "(auth record unavailable)" : user.email ?? "(no email)"}
       </h1>
 
       {feedback && (
         <div className="rounded-lg bg-brand-light px-3 py-2 text-sm text-brand dark:bg-brand/20 dark:text-white">
           {feedback}
+        </div>
+      )}
+
+      {user.authLoadError && (
+        <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
+          This account's Supabase Auth record could not be loaded (a database-level issue with
+          this specific account, confirmed separately from this app). Profile data below is
+          still real; email/confirmation/sign-in/ban fields are unavailable until that's fixed
+          on the Supabase side.
         </div>
       )}
 
@@ -101,7 +110,7 @@ export function UserDetail() {
           <div>
             <dt className="text-gray-500 dark:text-gray-400">Created</dt>
             <dd className="mt-1 text-gray-900 dark:text-white">
-              {new Date(user.createdAt).toLocaleString()}
+              {user.createdAt ? new Date(user.createdAt).toLocaleString() : "—"}
             </dd>
           </div>
           <div>

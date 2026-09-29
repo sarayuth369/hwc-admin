@@ -20,6 +20,14 @@ export function Dashboard() {
     <div className="space-y-6">
       <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Dashboard</h1>
 
+      {data.usersWithAuthLoadError > 0 && (
+        <div className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+          {data.usersWithAuthLoadError} user{data.usersWithAuthLoadError === 1 ? "" : "s"} could
+          not be loaded from Supabase Auth (a database-level issue with those specific
+          accounts, not this dashboard) — see the Users list for which ones.
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard label="Total users" value={data.totalUsers} />
         <StatCard label="Active" value={data.activeUsers} />

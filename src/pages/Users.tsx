@@ -137,11 +137,19 @@ export function Users() {
                 >
                   <td className="px-4 py-3">
                     <Link to={`/users/${u.id}`} className="font-medium text-brand hover:underline">
-                      {u.email ?? "(no email)"}
+                      {u.authLoadError ? "(auth record unavailable)" : u.email ?? "(no email)"}
                     </Link>
                     {u.isAdmin && (
                       <span className="ml-2 rounded-full bg-brand-light px-2 py-0.5 text-xs font-medium text-brand dark:bg-brand/20">
                         admin
+                      </span>
+                    )}
+                    {u.authLoadError && (
+                      <span
+                        className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-300"
+                        title={u.authLoadError}
+                      >
+                        error
                       </span>
                     )}
                   </td>
@@ -152,10 +160,10 @@ export function Users() {
                     <StatusBadge status={u.status} />
                   </td>
                   <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
-                    {u.emailConfirmed ? "Yes" : "No"}
+                    {u.authLoadError ? "—" : u.emailConfirmed ? "Yes" : "No"}
                   </td>
                   <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
-                    {new Date(u.createdAt).toLocaleDateString()}
+                    {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}
                   </td>
                   <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
                     {u.lastSignInAt ? new Date(u.lastSignInAt).toLocaleDateString() : "Never"}
