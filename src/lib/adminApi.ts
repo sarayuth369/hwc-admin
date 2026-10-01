@@ -111,6 +111,41 @@ export interface ListSentNotificationsResult {
   total: number;
 }
 
+export interface AiUsageOverview {
+  telemetryAvailable: boolean;
+  totalRequests: number;
+  successCount: number;
+  failureCount: number;
+  byRoute: Array<{ route: string; count: number; failureCount: number }>;
+  byModel: Array<{ model: string; count: number }>;
+  recentFailures: Array<{
+    route: string;
+    provider: string;
+    model: string | null;
+    errorCode: string | null;
+    createdAt: string;
+  }>;
+}
+
+export interface BillingOverview {
+  schemaAvailable: boolean;
+  providerConnected: boolean;
+  totalFree: number;
+  totalPremium: number;
+  totalPendingProvider: number;
+  rows: Array<{
+    userId: string;
+    tier: string;
+    status: string;
+    provider: string;
+    currentPeriodEnd: string | null;
+    updatedAt: string;
+  }>;
+  page: number;
+  pageSize: number;
+  totalCount: number;
+}
+
 export const adminApi = {
   getDashboard: () => request<DashboardMetrics>("/api/admin/dashboard"),
 
@@ -175,4 +210,19 @@ export const adminApi = {
       method: "POST",
       body: JSON.stringify(params),
     }),
+
+  getAiUsage: (params: { from?: string; to?: string } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.from) qs.set("from", params.from);
+    if (params.to) qs.set("to", params.to);
+    const query = qs.toString();
+    return request<AiUsageOverview>(`/api/admin/ai-usage${query ? `?${query}` : ""}`);
+  },
+
+  getBilling: (params: { page: number; pageSize: number }) => {
+    const qs = new URLSearchParams();
+    qs.set("page", String(params.page));
+    qs.set("pageSize", String(params.pageSize));
+    return request<BillingOverview>(`/api/admin/billing?${qs.toString()}`);
+  },
 };
