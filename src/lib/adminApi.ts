@@ -118,6 +118,7 @@ export interface AiUsageOverview {
   failureCount: number;
   byRoute: Array<{ route: string; count: number; failureCount: number }>;
   byModel: Array<{ model: string; count: number }>;
+  byProvider: Array<{ provider: string; count: number; failureCount: number }>;
   recentFailures: Array<{
     route: string;
     provider: string;
@@ -125,6 +126,21 @@ export interface AiUsageOverview {
     errorCode: string | null;
     createdAt: string;
   }>;
+}
+
+export interface ModelRoutingRow {
+  feature: string;
+  provider: string;
+  model: string;
+  enabled: boolean;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+export interface ModelRoutingOverview {
+  configAvailable: boolean;
+  rows: ModelRoutingRow[];
+  allowedProviderModels: Record<string, string[]>;
 }
 
 export interface BillingOverview {
@@ -211,13 +227,26 @@ export const adminApi = {
       body: JSON.stringify(params),
     }),
 
-  getAiUsage: (params: { from?: string; to?: string } = {}) => {
+  getAiUsage: (
+    params: { from?: string; to?: string; route?: string; provider?: string; model?: string } = {}
+  ) => {
     const qs = new URLSearchParams();
     if (params.from) qs.set("from", params.from);
     if (params.to) qs.set("to", params.to);
+    if (params.route) qs.set("route", params.route);
+    if (params.provider) qs.set("provider", params.provider);
+    if (params.model) qs.set("model", params.model);
     const query = qs.toString();
     return request<AiUsageOverview>(`/api/admin/ai-usage${query ? `?${query}` : ""}`);
   },
+
+  getModelRouting: () => request<ModelRoutingOverview>("/api/admin/model-routing"),
+
+  setModelRouting: (feature: string, update: { provider: string; model: string; enabled: boolean }) =>
+    request<ModelRoutingRow>(`/api/admin/model-routing/${feature}`, {
+      method: "PUT",
+      body: JSON.stringify(update),
+    }),
 
   getBilling: (params: { page: number; pageSize: number }) => {
     const qs = new URLSearchParams();

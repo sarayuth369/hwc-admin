@@ -2,20 +2,63 @@ import { useEffect, useState, useCallback } from "react";
 import { adminApi, AiUsageOverview, AdminApiError } from "../lib/adminApi";
 import { StatCard, LoadingState, ErrorState, ComingSoon } from "../components/Common";
 
+const ROUTE_OPTIONS = ["", "chat", "insight", "image_analyze", "voice_transcribe", "voice_synthesize"];
+const PROVIDER_OPTIONS = ["", "workers-ai", "zai", "gemini", "openai"];
+
+function FilterSelect({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="flex flex-col gap-1 text-xs text-gray-500 dark:text-gray-400">
+      {label}
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+      >
+        {options.map((opt) => (
+          <option key={opt} value={opt}>
+            {opt === "" ? "All" : opt}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 export function AiUsage() {
   const [data, setData] = useState<AiUsageOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [route, setRoute] = useState("");
+  const [provider, setProvider] = useState("");
+  const [model, setModel] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
 
   const load = useCallback(() => {
     setLoading(true);
     setError(null);
     adminApi
-      .getAiUsage()
+      .getAiUsage({
+        route: route || undefined,
+        provider: provider || undefined,
+        model: model || undefined,
+        from: from || undefined,
+        to: to || undefined,
+      })
       .then(setData)
       .catch((e: AdminApiError) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [route, provider, model, from, to]);
 
   useEffect(() => {
     load();
@@ -24,6 +67,52 @@ export function AiUsage() {
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold text-gray-900 dark:text-white">AI / Usage</h1>
+
+      <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <FilterSelect label="Feature" value={route} options={ROUTE_OPTIONS} onChange={setRoute} />
+        <FilterSelect label="Provider" value={provider} options={PROVIDER_OPTIONS} onChange={setProvider} />
+        <label className="flex flex-col gap-1 text-xs text-gray-500 dark:text-gray-400">
+          Model contains
+          <input
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+            placeholder="e.g. llama-3.3"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-xs text-gray-500 dark:text-gray-400">
+          From
+          <input
+            type="date"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-xs text-gray-500 dark:text-gray-400">
+          To
+          <input
+            type="date"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          />
+        </label>
+        {(route || provider || model || from || to) && (
+          <button
+            onClick={() => {
+              setRoute("");
+              setProvider("");
+              setModel("");
+              setFrom("");
+              setTo("");
+            }}
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 dark:border-gray-700 dark:text-gray-300"
+          >
+            Clear filters
+          </button>
+        )}
+      </div>
 
       {error && <ErrorState message={error} />}
       {loading && <LoadingState />}
@@ -52,7 +141,13 @@ export function AiUsage() {
             <StatCard label="Distinct models" value={data.byModel.length} />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          {data.totalRequests === 0 && (
+            <div className="rounded-2xl border border-gray-200 bg-white p-5 text-sm text-gray-500 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
+              No requests match these filters.
+            </div>
+          )}
+
+          <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
               <h2 className="text-sm font-semibold text-gray-900 dark:text-white">By feature</h2>
               <table className="mt-3 w-full text-sm">
@@ -76,6 +171,35 @@ export function AiUsage() {
                       <td className="py-2 text-gray-900 dark:text-white">{r.route}</td>
                       <td className="py-2 text-gray-600 dark:text-gray-300">{r.count}</td>
                       <td className="py-2 text-gray-600 dark:text-gray-300">{r.failureCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">By provider</h2>
+              <table className="mt-3 w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs uppercase text-gray-500 dark:text-gray-400">
+                    <th className="pb-2">Provider</th>
+                    <th className="pb-2">Requests</th>
+                    <th className="pb-2">Failures</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.byProvider.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="py-4 text-center text-gray-400">
+                        No requests in this range.
+                      </td>
+                    </tr>
+                  )}
+                  {data.byProvider.map((p) => (
+                    <tr key={p.provider} className="border-t border-gray-100 dark:border-gray-800">
+                      <td className="py-2 text-gray-900 dark:text-white">{p.provider}</td>
+                      <td className="py-2 text-gray-600 dark:text-gray-300">{p.count}</td>
+                      <td className="py-2 text-gray-600 dark:text-gray-300">{p.failureCount}</td>
                     </tr>
                   ))}
                 </tbody>

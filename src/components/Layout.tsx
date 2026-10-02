@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { to: "/", label: "Dashboard", end: true },
   { to: "/users", label: "Users" },
   { to: "/ai-usage", label: "AI / Usage" },
+  { to: "/model-routing", label: "Model Routing" },
   { to: "/audit-log", label: "Audit Log" },
   { to: "/notifications", label: "Notifications" },
   { to: "/subscriptions", label: "Subscriptions" },

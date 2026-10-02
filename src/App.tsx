@@ -11,6 +11,7 @@ import { AuditLog } from "./pages/AuditLog";
 import { Settings } from "./pages/Settings";
 import { Subscriptions } from "./pages/Subscriptions";
 import { AiUsage } from "./pages/AiUsage";
+import { ModelRouting } from "./pages/ModelRouting";
 import { Notifications } from "./pages/Notifications";
 
 export default function App() {
@@ -26,6 +27,7 @@ export default function App() {
               <Route path="/users" element={<Users />} />
               <Route path="/users/:id" element={<UserDetail />} />
               <Route path="/ai-usage" element={<AiUsage />} />
+              <Route path="/model-routing" element={<ModelRouting />} />
               <Route path="/audit-log" element={<AuditLog />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/subscriptions" element={<Subscriptions />} />
