@@ -1,9 +1,45 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { adminApi, SentNotificationRow, AdminApiError } from "../lib/adminApi";
+import {
+  adminApi,
+  SentNotificationRow,
+  AdminApiError,
+  PushDispatchResult,
+} from "../lib/adminApi";
 import { LoadingState, ErrorState } from "../components/Common";
 
 const CATEGORIES = ["general", "reminder", "insight", "admin", "system"];
 const PAGE_SIZE = 20;
+// Must match PUSH_ROUTES in the Worker (src/push/pushDispatcher.ts): the
+// in-app screen a push opens. "" = just open the app.
+const ROUTES: Array<{ value: string; label: string }> = [
+  { value: "", label: "Open the Notifications tab (default)" },
+  { value: "home", label: "Home" },
+  { value: "health", label: "Health" },
+  { value: "ai_talk", label: "AI Talk" },
+  { value: "profile", label: "Profile" },
+];
+
+/** Honest, plain-language summary of the push attempt. Never says
+ * "delivered" -- FCM acceptance means the message was handed to Google, not
+ * that a phone displayed it. */
+function describePush(push: PushDispatchResult): string {
+  switch (push.status) {
+    case "sent":
+      return `Push accepted by FCM for ${push.sent} device${push.sent === 1 ? "" : "s"}`;
+    case "partial":
+      return `Push accepted for ${push.sent} device(s), failed for ${push.failed}${
+        push.invalidTokensDeactivated ? ` (${push.invalidTokensDeactivated} stale token(s) deactivated)` : ""
+      }`;
+    case "failed":
+      return `Push failed for ${push.failed} device(s)${push.errorCode ? ` (${push.errorCode})` : ""}`;
+    case "no_devices":
+      return "No registered devices to push to (in-app only)";
+    case "not_configured":
+      return "Push is not configured on the server yet (in-app only)";
+    default:
+      return `Push could not be attempted${push.errorCode ? ` (${push.errorCode})` : ""}`;
+  }
+}
 
 export function Notifications() {
   const [targetType, setTargetType] = useState<"user" | "broadcast">("user");
@@ -11,6 +47,7 @@ export function Notifications() {
   const [category, setCategory] = useState("admin");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [route, setRoute] = useState("");
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -58,9 +95,16 @@ export function Notifications() {
         category,
         title: title.trim(),
         body: body.trim(),
+        deepLink: route || undefined,
       });
       setFeedback(
-        `Sent to ${result.recipientCount} recipient${result.recipientCount === 1 ? "" : "s"}.`
+        `In-app notification created for ${result.recipientCount} recipient${
+          result.recipientCount === 1 ? "" : "s"
+        }. ${describePush(result.push)}${
+          result.push.skippedOverLimit > 0
+            ? ` · ${result.push.skippedOverLimit} more device(s) over the per-send limit were not pushed`
+            : ""
+        }.`
       );
       setTitle("");
       setBody("");
@@ -79,10 +123,11 @@ export function Notifications() {
     <div className="space-y-6">
       <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Notifications</h1>
       <p className="text-sm text-gray-500 dark:text-gray-400">
-        Sends a real row into each recipient's in-app Notifications tab (Supabase-backed,
-        RLS-protected — only this admin route can create one). Delivery is "the user opens the
-        app and sees it" today; there is no push (FCM) delivery configured yet, so a
-        notification will not arrive as a phone push until that's set up separately.
+        Creates a real row in each recipient's in-app Notifications tab (Supabase-backed,
+        RLS-protected — only this admin route can create one), then tries to push it to their
+        registered devices through Firebase Cloud Messaging. The result below says exactly what
+        happened; "accepted by FCM" means Google took the message, not that a phone showed it.
+        Pushes are limited per send (free Worker plan), so large broadcasts may reach only some devices.
       </p>
 
       <form
@@ -125,6 +170,19 @@ export function Notifications() {
           {CATEGORIES.map((c) => (
             <option key={c} value={c}>
               {c}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={route}
+          onChange={(e) => setRoute(e.target.value)}
+          aria-label="Screen to open when tapped"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+        >
+          {ROUTES.map((r) => (
+            <option key={r.value} value={r.value}>
+              {r.label}
             </option>
           ))}
         </select>

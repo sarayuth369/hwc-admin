@@ -128,6 +128,21 @@ export interface AiUsageOverview {
   }>;
 }
 
+export interface PushDispatchResult {
+  status: "sent" | "partial" | "failed" | "no_devices" | "not_configured" | "error";
+  attempted: number;
+  sent: number;
+  failed: number;
+  invalidTokensDeactivated: number;
+  skippedOverLimit: number;
+  errorCode?: string;
+}
+
+export interface SendNotificationResult {
+  recipientCount: number;
+  push: PushDispatchResult;
+}
+
 export interface ModelRoutingRow {
   feature: string;
   provider: string;
@@ -221,8 +236,10 @@ export const adminApi = {
     category: string;
     title: string;
     body: string;
+    /** In-app screen opened when the push is tapped (allowlisted by the Worker). */
+    deepLink?: string;
   }) =>
-    request<{ recipientCount: number }>("/api/admin/notifications", {
+    request<SendNotificationResult>("/api/admin/notifications", {
       method: "POST",
       body: JSON.stringify(params),
     }),
