@@ -5,7 +5,7 @@ import {
   AdminApiError,
   PushDispatchResult,
 } from "../lib/adminApi";
-import { LoadingState, ErrorState } from "../components/Common";
+import { LoadingState, ErrorState, ConfirmDialog } from "../components/Common";
 
 const CATEGORIES = ["general", "reminder", "insight", "admin", "system"];
 const PAGE_SIZE = 20;
@@ -48,6 +48,10 @@ export function Notifications() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [route, setRoute] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<{
+    row: SentNotificationRow;
+    scope: "single" | "group";
+  } | null>(null);
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +78,23 @@ export function Notifications() {
   useEffect(() => {
     loadSent();
   }, [loadSent]);
+
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    const { row, scope } = pendingDelete;
+    setPendingDelete(null);
+    setError(null);
+    setFeedback(null);
+    try {
+      const result = await adminApi.deleteNotification(row.id, scope);
+      setFeedback(
+        `Deleted ${result.deletedCount} notification${result.deletedCount === 1 ? "" : "s"} from the system.`
+      );
+      loadSent();
+    } catch (e) {
+      setError((e as AdminApiError).message);
+    }
+  }
 
   async function handleSend(e: FormEvent) {
     e.preventDefault();
@@ -234,12 +255,13 @@ export function Notifications() {
                   <th className="px-4 py-3">Message</th>
                   <th className="px-4 py-3">Recipient</th>
                   <th className="px-4 py-3">Sent</th>
+                  <th className="px-4 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                    <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
                       Nothing sent yet.
                     </td>
                   </tr>
@@ -252,6 +274,20 @@ export function Notifications() {
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{r.userId}</td>
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
                       {new Date(r.createdAt).toLocaleString()}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <button
+                        onClick={() => setPendingDelete({ row: r, scope: "group" })}
+                        className="mr-2 rounded-lg border border-red-300 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={() => setPendingDelete({ row: r, scope: "single" })}
+                        className="text-xs text-gray-500 underline hover:text-gray-700 dark:text-gray-400"
+                      >
+                        only this recipient
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -281,6 +317,24 @@ export function Notifications() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        danger
+        title={
+          pendingDelete?.scope === "group"
+            ? "Delete this message for everyone?"
+            : "Delete for this recipient only?"
+        }
+        description={
+          pendingDelete?.scope === "group"
+            ? `"${pendingDelete?.row.title}" will be permanently removed from the system, including every recipient's in-app inbox from the same send. This cannot be undone. A push notification already shown on a phone cannot be recalled.`
+            : `"${pendingDelete?.row.title}" will be permanently removed from this one recipient's in-app inbox. This cannot be undone. A push notification already shown on their phone cannot be recalled.`
+        }
+        confirmLabel="Delete permanently"
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }

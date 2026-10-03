@@ -244,6 +244,13 @@ export const adminApi = {
       body: JSON.stringify(params),
     }),
 
+  /** Permanently deletes inbox notification(s). scope "group" removes every
+   * copy from the same send (all recipients); "single" only this row. */
+  deleteNotification: (id: string, scope: "single" | "group") =>
+    request<{ deletedCount: number }>(`/api/admin/notifications/${id}?scope=${scope}`, {
+      method: "DELETE",
+    }),
+
   getAiUsage: (
     params: { from?: string; to?: string; route?: string; provider?: string; model?: string } = {}
   ) => {
