@@ -44,11 +44,11 @@ export function Subscriptions() {
         <>
           {!data.providerConnected && (
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200">
-              <strong>No payment provider connected.</strong> Every row below genuinely reflects
-              each user's real state — it's real data, not a placeholder — but every account is on
-              the free tier because no billing provider (e.g. Google Play Billing) has been wired
-              up yet. This is the entitlement/gating model, ready for a provider to write real
-              subscription rows the moment one is connected.
+              <strong>Google Play verification isn't set up on the Worker yet.</strong> The app
+              can take Google Play purchases, but until the Worker secret
+              GOOGLE_PLAY_SERVICE_ACCOUNT_JSON exists no purchase can be verified, so nobody is
+              granted Premium and every account stays on the free tier. Every row below is real
+              data, not a placeholder.
             </div>
           )}
 
